@@ -1077,6 +1077,19 @@ impl Command {
         let child = Child::new(self);
         async { child?.output().await }
     }
+
+    /// Schedules a closure to be run just before the exec function is invoked.
+    #[cfg(unix)]
+    #[cfg_attr(docsrs, doc(cfg(unix)))]
+    pub unsafe fn pre_exec<F>(&mut self, f: F) -> &mut Command
+    where
+        F: FnMut() -> io::Result<()> + Send + Sync + 'static,
+    {
+        use std::os::unix::process::CommandExt;
+
+        self.inner.pre_exec(f);
+        self
+    }
 }
 
 impl From<std::process::Command> for Command {
